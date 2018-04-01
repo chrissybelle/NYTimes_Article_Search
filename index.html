@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>NYT Search</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootswatch/3.3.6/flatly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="jumbotron jumbotron-primary">
+            <h1>New York Times Article Search</h1>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h1 class="panel-title">Search Parameters</h1>
+            </div>
+            <div class="panel-body">
+                <form role="form">
+                    <div class="form-group">
+                        <label for="searchTerm">Search Term:</label>
+                        <input type="text" class="form-control" id="searchTerm">
+                    </div>
+                    <div class="form-group">
+                        <label for="select-number"># of Articles to Return:</label>
+                        <input type name="select-number" class="form-control" id="select-number">
+                        </input>
+                    </div>
+                    <div class="form-group">
+                        <label for="search">Start Date: (YYYYMMDD)</label>
+                        <input type="text" class="form-control" id="start-year">
+                    </div>
+                    <div class="form-group">
+                        <label for="search">End Date: (YYYYMMDD)</label>
+                        <input type="text" class="form-control" id="end-year">
+                    </div>
+                    <button class="btn btn-primary" id="searchBtn">Search NYT</button>
+                    <button class="btn btn-primary" id="clear-form">Clear Form</button>
+                    <button class="btn btn-primary" id="clear-results">Clear Results</button>
+                </form>
+            </div>
+        </div>
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h1 class="panel-title">Top Articles</h1>
+            </div>
+            <div class="panel-body">
+                <div class="article-list">
+              
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+    var queryURL;
+    
+        $("#searchBtn").on("click", function() {
+            event.preventDefault();
+            console.log("test");
+            var searchTerm = $("#searchTerm").val().trim();
+            var recordLimit = $("#select-number").val();
+            var beginDate = $("#start-year").val().toString();
+            var endDate = $("#end-year").val().toString();
+
+            if (beginDate !== "" && endDate === "") {
+                queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=ed959fdb3bc84d6cb9768538ba808b29&q=" + searchTerm + "&begin_date=" + beginDate;
+            } else if (endDate !== "" && beginDate === "") {
+                queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=ed959fdb3bc84d6cb9768538ba808b29&q=" + searchTerm + "&end_date=" + endDate;
+            } else if (beginDate !== "" && endDate !== "") {
+                queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=ed959fdb3bc84d6cb9768538ba808b29&q=" + searchTerm + "&begin_date=" + beginDate + "&end_date=" + endDate;
+            } else if (beginDate === "" && endDate === ""){
+                queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?api-key=ed959fdb3bc84d6cb9768538ba808b29&q=" + searchTerm;
+            }
+
+            $.ajax({
+                url: queryURL,
+                method: 'GET',
+            }).done(function(result) {
+
+                console.log(queryURL);
+                console.log(result);
+                var article = result.response.docs;
+                for (i = 0; i < recordLimit; i++) {
+                    var newDiv = $("<div>");
+                    var header = $("<h1>").html("<a href=" + article[i].web_url + ">" + article[i].headline.main + "</a>");
+                    var author = $("<p>").text(article[i].byline.original)
+                    var pubDate = $("<p>").text(article[i].pub_date)
+                    newDiv.append(header).append(author).append(pubDate);
+                    $(".article-list").prepend(newDiv);
+                }
+            });
+            $("#clear-form").on("click", function() {
+                event.preventDefault();
+                document.forms[0].reset();
+            });
+            $("#clear-results").on("click", function() {
+                event.preventDefault();
+                $(".article-list").empty();
+            });
+        });
+    </script>
+</body>
+</html>
